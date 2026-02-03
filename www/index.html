@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MiApp Profesional</title>
+    
+    <!-- Estilos -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-gray-100 h-screen flex justify-center sm:items-center">
+
+    <!-- Contenedor App (Simulación Móvil) -->
+    <div id="app-container" class="w-full h-full sm:h-[850px] sm:w-[420px] bg-white sm:rounded-[40px] sm:shadow-2xl overflow-hidden relative flex flex-col">
+        
+        <!-- HEADER GLOBAL (Se oculta/muestra según la vista) -->
+        <header id="main-header" class="hidden bg-white/95 backdrop-blur-sm px-6 py-4 border-b border-gray-100 flex justify-between items-center sticky top-0 z-30">
+            <h1 class="text-xl font-bold text-slate-800 tracking-tight">MiApp</h1>
+            <div class="flex items-center gap-3">
+                <button id="pwa-install-btn" class="hidden text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full transition active:scale-95">
+                    INSTALAR
+                </button>
+                <button onclick="router.navigate('perfil')" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-50 text-gray-600 transition">
+                    <i class="ph-fill ph-gear text-2xl"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- ÁREA DE INYECCIÓN DE VISTAS (Aquí JS pegará el contenido) -->
+        <main id="router-outlet" class="flex-1 overflow-y-auto no-scrollbar relative bg-slate-50">
+            <!-- El contenido de login.html, home.html, etc. se cargará aquí -->
+            <div class="flex items-center justify-center h-full text-gray-400">
+                <i class="ph ph-spinner animate-spin text-4xl"></i>
+            </div>
+        </main>
+
+        <!-- Componentes Globales (Toast y Modales) -->
+        <div id="toast" class="absolute top-4 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-xl text-sm font-medium transition-all duration-300 opacity-0 -translate-y-10 pointer-events-none z-50"></div>
+        
+        <div id="modal-overlay" class="hidden absolute inset-0 bg-black/60 z-50 backdrop-blur-sm flex items-center justify-center p-6">
+            <div id="modal-content" class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-[fadeIn_0.2s_ease-out]"></div>
+        </div>
+
+    </div>
+
+    <!-- Lógica de la App -->
+    
+    <script src="js/db.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<div class="bg-white min-h-full">
+    <!-- Header interno para volver atrás -->
+    <div class="px-6 py-4 flex items-center border-b border-gray-100 sticky top-0 bg-white z-20">
+        <button onclick="router.navigate('login')" class="p-2 -ml-2 text-slate-500"><i class="ph ph-arrow-left text-xl"></i></button>
+        <h2 class="text-lg font-bold ml-2">Registro Nuevo</h2>
+    </div>
+
+    <div class="p-6 pb-20">
+        <form onsubmit="app.register(event)">
+            <!-- Foto Perfil -->
+            <div class="flex justify-center mb-8">
+                <div class="relative w-28 h-28">
+                    <div class="w-full h-full rounded-full bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden" onclick="document.getElementById('reg-img').click()">
+                        <img id="reg-preview" class="w-full h-full object-cover hidden">
+                        <i id="reg-icon" class="ph ph-camera text-3xl text-slate-400"></i>
+                    </div>
+                    <div class="absolute bottom-0 right-0 bg-indigo-600 text-white p-2 rounded-full shadow-md pointer-events-none">
+                        <i class="ph-bold ph-plus text-xs"></i>
+                    </div>
+                    <input type="file" id="reg-img" class="hidden" accept="image/*" onchange="ui.previewImage(this, 'reg-preview', 'reg-icon')">
+                </div>
+            </div>
+
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Datos Personales</p>
+            
+            <div class="input-wrapper">
+                <i class="ph ph-user input-icon"></i>
+                <input type="text" id="reg-nombre" class="app-input" placeholder="Nombre" required>
+            </div>
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <input type="text" id="reg-apellido1" class="app-input !pl-4" placeholder="1er Apellido" required>
+                <input type="text" id="reg-apellido2" class="app-input !pl-4" placeholder="2do Apellido">
+            </div>
+            
+            <div class="input-wrapper">
+                <i class="ph ph-identification-card input-icon"></i>
+                <input type="text" id="reg-cedula" class="app-input" placeholder="Cédula" required>
+            </div>
+            
+            <div class="input-wrapper">
+                <i class="ph ph-cake input-icon"></i>
+                <input type="date" id="reg-nacimiento" class="app-input text-slate-500" required>
+            </div>
+
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 mt-6">Contacto</p>
+
+            <div class="input-wrapper">
+                <i class="ph ph-device-mobile input-icon"></i>
+                <input type="tel" id="reg-movil" class="app-input" placeholder="Móvil Celular" required>
+            </div>
+            <div class="input-wrapper">
+                <i class="ph ph-phone input-icon"></i>
+                <input type="tel" id="reg-telefono" class="app-input" placeholder="Teléfono Fijo">
+            </div>
+            <div class="input-wrapper">
+                <i class="ph ph-envelope-simple input-icon"></i>
+                <input type="email" id="reg-email" class="app-input" placeholder="Correo Electrónico" required>
+            </div>
+
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 mt-6">Cuenta</p>
+
+            <div class="input-wrapper">
+                <i class="ph ph-at input-icon"></i>
+                <input type="text" id="reg-usuario" class="app-input" placeholder="Usuario" required>
+            </div>
+
+            <div class="input-wrapper">
+                <i class="ph ph-lock-key input-icon"></i>
+                <input type="password" id="reg-pass1" class="app-input" placeholder="Contraseña" required>
+                <i class="ph ph-eye toggle-pass" onclick="ui.togglePass('reg-pass1', this)"></i>
+            </div>
+
+            <div class="input-wrapper">
+                <i class="ph ph-check-circle input-icon"></i>
+                <input type="password" id="reg-pass2" class="app-input" placeholder="Verificar Contraseña" required>
+                <i class="ph ph-eye toggle-pass" onclick="ui.togglePass('reg-pass2', this)"></i>
+            </div>
+
+            <button type="submit" class="btn-primary mt-4">Registrar Usuario</button>
+        </form>
+    </div>
+</div>

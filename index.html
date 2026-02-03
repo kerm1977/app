@@ -1,0 +1,651 @@
+<!-- 
+    ESTRUCTURA DE CARPETAS RECOMENDADA PARA TU PROYECTO CAPACITOR:
+    miApp/
+    └── www/
+        ├── index.html (Punto de entrada, carga el router)
+        ├── css/
+        │   └── styles.css
+        ├── js/
+        │   ├── app.js
+        │   └── db.js
+        ├── img/
+        └── vistas/
+            ├── login.html
+            ├── register.html
+            ├── home.html
+            └── perfil.html
+-->
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MiApp - Estructura Modular</title>
+    
+    <!-- Tailwind CSS (Solo para diseño visual rápido, en producción puedes usar tu propio CSS) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Iconos Phosphor -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- ========================================== -->
+    <!--      ARCHIVO: www/css/styles.css           -->
+    <!-- ========================================== -->
+    <style>
+        /* Base y Reset */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8fafc;
+            overscroll-behavior-y: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Utilidades de Scroll oculto */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Animaciones de transición entre vistas */
+        .page-view {
+            display: none;
+            width: 100%;
+            height: 100%;
+            animation: slideIn 0.25s ease-out;
+        }
+        
+        .page-view.active { display: flex; flex-direction: column; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Estilos de Inputs Personalizados */
+        .app-input {
+            width: 100%;
+            padding: 14px 14px 14px 45px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            font-size: 15px;
+            transition: all 0.2s;
+            outline: none;
+        }
+        .app-input:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        .input-wrapper { position: relative; margin-bottom: 16px; }
+        .input-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 20px;
+        }
+        .toggle-password {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        /* Botones */
+        .btn-primary {
+            width: 100%;
+            background-color: #0f172a;
+            color: white;
+            font-weight: 600;
+            padding: 16px;
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+            transition: transform 0.1s;
+        }
+        .btn-primary:active { transform: scale(0.98); }
+    </style>
+</head>
+<body class="h-screen flex justify-center bg-gray-100 sm:items-center">
+
+    <!-- SIMULACIÓN DE DISPOSITIVO (Contenedor Principal) -->
+    <div id="mobile-viewport" class="w-full h-full sm:h-[850px] sm:w-[420px] bg-white sm:rounded-[40px] sm:border-[8px] sm:border-gray-900 overflow-hidden relative shadow-2xl flex flex-col">
+        
+        <!-- ========================================== -->
+        <!--      ARCHIVO: www/base.html (Header)       -->
+        <!-- ========================================== -->
+        <!-- Este header se inyecta o muestra en todas las vistas excepto login/registro -->
+        <header id="app-header" class="hidden bg-white/90 backdrop-blur-md px-6 py-4 border-b border-gray-100 flex justify-between items-center sticky top-0 z-30">
+            <h1 class="text-xl font-bold text-slate-800 tracking-tight">MiApp</h1>
+            <div class="flex items-center gap-3">
+                <button id="pwa-btn" class="hidden text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full">
+                    INSTALAR
+                </button>
+                <button onclick="router.load('perfil')" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-50 text-gray-600 transition">
+                    <i class="ph-fill ph-gear text-2xl"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- CONTENIDO DINÁMICO (Aquí se cargan las vistas) -->
+        <main id="app-content" class="flex-1 overflow-y-auto no-scrollbar relative bg-slate-50">
+
+            <!-- ========================================== -->
+            <!--      ARCHIVO: www/vistas/login.html        -->
+            <!-- ========================================== -->
+            <div id="page-login" class="page-view active bg-white p-8 justify-center">
+                <div class="text-center mb-12">
+                    <div class="inline-flex p-4 rounded-2xl bg-indigo-600 shadow-lg shadow-indigo-200 mb-6">
+                        <i class="ph-fill ph-asterisk-simple text-white text-4xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-slate-900">Bienvenido</h2>
+                    <p class="text-slate-500 mt-2">Ingresa tus credenciales para acceder</p>
+                </div>
+
+                <form onsubmit="app.login(event)">
+                    <div class="input-wrapper">
+                        <i class="ph ph-envelope-simple input-icon"></i>
+                        <input type="email" id="log-email" class="app-input" placeholder="Correo electrónico" required>
+                    </div>
+
+                    <div class="input-wrapper">
+                        <i class="ph ph-lock-key input-icon"></i>
+                        <input type="password" id="log-pass" class="app-input" placeholder="Contraseña" required>
+                        <i class="ph ph-eye toggle-password" onclick="ui.togglePass('log-pass', this)"></i>
+                    </div>
+
+                    <div class="text-right mb-8">
+                        <a href="#" class="text-sm font-semibold text-indigo-600">¿Olvidaste tu contraseña?</a>
+                    </div>
+
+                    <button type="submit" class="btn-primary mb-6">Iniciar Sesión</button>
+                </form>
+
+                <div class="text-center">
+                    <span class="text-slate-500 text-sm">¿Nuevo usuario? </span>
+                    <button onclick="router.load('register')" class="text-indigo-600 font-bold text-sm">Crear Cuenta</button>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!--      ARCHIVO: www/vistas/register.html     -->
+            <!-- ========================================== -->
+            <div id="page-register" class="page-view bg-white">
+                <div class="px-6 py-4 flex items-center border-b border-gray-100 sticky top-0 bg-white z-20">
+                    <button onclick="router.load('login')" class="p-2 -ml-2 text-slate-500"><i class="ph ph-arrow-left text-xl"></i></button>
+                    <h2 class="text-lg font-bold ml-2">Registro Nuevo</h2>
+                </div>
+
+                <div class="p-6 pb-20">
+                    <form onsubmit="app.register(event)">
+                        <!-- Foto Perfil -->
+                        <div class="flex justify-center mb-8">
+                            <div class="relative w-28 h-28">
+                                <div class="w-full h-full rounded-full bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden" onclick="document.getElementById('reg-img').click()">
+                                    <img id="reg-preview" class="w-full h-full object-cover hidden">
+                                    <i id="reg-icon" class="ph ph-camera text-3xl text-slate-400"></i>
+                                </div>
+                                <div class="absolute bottom-0 right-0 bg-indigo-600 text-white p-2 rounded-full shadow-md pointer-events-none">
+                                    <i class="ph-bold ph-plus text-xs"></i>
+                                </div>
+                                <input type="file" id="reg-img" class="hidden" accept="image/*" onchange="ui.previewImage(this, 'reg-preview', 'reg-icon')">
+                            </div>
+                        </div>
+
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Datos Personales</p>
+                        
+                        <div class="input-wrapper">
+                            <i class="ph ph-user input-icon"></i>
+                            <input type="text" id="reg-nombre" class="app-input" placeholder="Nombre" required>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            <input type="text" id="reg-apellido1" class="app-input !pl-4" placeholder="1er Apellido" required>
+                            <input type="text" id="reg-apellido2" class="app-input !pl-4" placeholder="2do Apellido">
+                        </div>
+                        
+                        <div class="input-wrapper">
+                            <i class="ph ph-identification-card input-icon"></i>
+                            <input type="text" id="reg-cedula" class="app-input" placeholder="Cédula" required>
+                        </div>
+                        
+                        <div class="input-wrapper">
+                            <i class="ph ph-cake input-icon"></i>
+                            <input type="date" id="reg-nacimiento" class="app-input text-slate-500" required>
+                        </div>
+
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 mt-6">Contacto</p>
+
+                        <div class="input-wrapper">
+                            <i class="ph ph-device-mobile input-icon"></i>
+                            <input type="tel" id="reg-movil" class="app-input" placeholder="Móvil Celular" required>
+                        </div>
+                        <div class="input-wrapper">
+                            <i class="ph ph-phone input-icon"></i>
+                            <input type="tel" id="reg-telefono" class="app-input" placeholder="Teléfono Fijo">
+                        </div>
+                        <div class="input-wrapper">
+                            <i class="ph ph-envelope-simple input-icon"></i>
+                            <input type="email" id="reg-email" class="app-input" placeholder="Correo Electrónico" required>
+                        </div>
+
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 mt-6">Cuenta</p>
+
+                        <div class="input-wrapper">
+                            <i class="ph ph-at input-icon"></i>
+                            <input type="text" id="reg-usuario" class="app-input" placeholder="Usuario" required>
+                        </div>
+
+                        <div class="input-wrapper">
+                            <i class="ph ph-lock-key input-icon"></i>
+                            <input type="password" id="reg-pass1" class="app-input" placeholder="Contraseña" required>
+                            <i class="ph ph-eye toggle-password" onclick="ui.togglePass('reg-pass1', this)"></i>
+                        </div>
+
+                        <div class="input-wrapper">
+                            <i class="ph ph-check-circle input-icon"></i>
+                            <input type="password" id="reg-pass2" class="app-input" placeholder="Verificar Contraseña" required>
+                            <i class="ph ph-eye toggle-password" onclick="ui.togglePass('reg-pass2', this)"></i>
+                        </div>
+
+                        <button type="submit" class="btn-primary mt-4">Registrar Usuario</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!--      ARCHIVO: www/vistas/home.html         -->
+            <!-- ========================================== -->
+            <div id="page-home" class="page-view p-6">
+                <!-- Tarjeta de Bienvenida -->
+                <div class="bg-slate-900 rounded-3xl p-6 text-white shadow-xl shadow-slate-300 mb-8 relative overflow-hidden">
+                    <div class="absolute -right-10 -top-10 w-40 h-40 bg-indigo-500 rounded-full opacity-20 blur-3xl"></div>
+                    <div class="relative z-10">
+                        <p class="text-slate-300 text-sm mb-1">Bienvenido de nuevo,</p>
+                        <h2 id="home-user-display" class="text-2xl font-bold">Usuario</h2>
+                        <div class="mt-6 inline-flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl backdrop-blur-sm">
+                            <div class="w-2 h-2 rounded-full bg-green-400"></div>
+                            <span class="text-xs font-medium">Estado: Conectado</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grid de Acciones -->
+                <h3 class="font-bold text-slate-800 mb-4">Acciones Rápidas</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center gap-3 active:scale-95 transition">
+                        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-2xl">
+                            <i class="ph-fill ph-files"></i>
+                        </div>
+                        <span class="font-semibold text-sm text-slate-600">Mis Datos</span>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center gap-3 active:scale-95 transition">
+                        <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center text-2xl">
+                            <i class="ph-fill ph-bell"></i>
+                        </div>
+                        <span class="font-semibold text-sm text-slate-600">Alertas</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!--      ARCHIVO: www/vistas/perfil.html       -->
+            <!-- ========================================== -->
+            <div id="page-perfil" class="page-view bg-slate-50">
+                <div class="bg-white sticky top-0 z-20 px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <button onclick="router.load('home')" class="p-2 -ml-2 text-slate-500"><i class="ph ph-arrow-left text-xl"></i></button>
+                        <h2 class="text-lg font-bold ml-2">Editar Perfil</h2>
+                    </div>
+                    <button onclick="app.logout()" class="text-red-500 text-sm font-semibold">Salir</button>
+                </div>
+
+                <div class="p-6 pb-24">
+                    <form onsubmit="app.updateProfile(event)">
+                        
+                        <!-- Edición de Foto -->
+                        <div class="flex flex-col items-center mb-8">
+                            <div class="relative">
+                                <img id="edit-preview" src="" class="w-24 h-24 rounded-full object-cover border-4 border-white shadow-md">
+                                <button type="button" onclick="document.getElementById('edit-img').click()" class="absolute bottom-0 right-0 bg-slate-900 text-white p-2 rounded-full shadow-lg">
+                                    <i class="ph-bold ph-pencil-simple text-sm"></i>
+                                </button>
+                            </div>
+                            <input type="file" id="edit-img" class="hidden" accept="image/*" onchange="ui.previewImage(this, 'edit-preview', null)">
+                        </div>
+
+                        <!-- Edición Completa de Datos -->
+                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 space-y-4 mb-6">
+                            <h3 class="text-xs font-bold text-indigo-600 uppercase">Información Básica</h3>
+                            <input type="text" id="edit-nombre" class="app-input" placeholder="Nombre" required>
+                            <div class="grid grid-cols-2 gap-3">
+                                <input type="text" id="edit-apellido1" class="app-input !pl-4" placeholder="1er Apellido">
+                                <input type="text" id="edit-apellido2" class="app-input !pl-4" placeholder="2do Apellido">
+                            </div>
+                            <input type="text" id="edit-cedula" class="app-input bg-gray-50 text-gray-500" readonly>
+                            <input type="date" id="edit-nacimiento" class="app-input">
+                        </div>
+
+                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 space-y-4 mb-6">
+                            <h3 class="text-xs font-bold text-indigo-600 uppercase">Contacto</h3>
+                            <input type="tel" id="edit-movil" class="app-input" placeholder="Móvil">
+                            <input type="tel" id="edit-telefono" class="app-input" placeholder="Fijo">
+                            <input type="email" id="edit-email" class="app-input" placeholder="Email">
+                        </div>
+
+                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 space-y-4">
+                            <h3 class="text-xs font-bold text-indigo-600 uppercase">Seguridad</h3>
+                            <input type="text" id="edit-usuario" class="app-input" placeholder="Usuario">
+                            <div class="input-wrapper mb-0">
+                                <input type="password" id="edit-pass" class="app-input" placeholder="Nueva contraseña (opcional)">
+                                <i class="ph ph-eye toggle-password" onclick="ui.togglePass('edit-pass', this)"></i>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-primary mt-6 bg-indigo-600">Guardar Cambios</button>
+                    </form>
+
+                    <!-- Zona de Peligro -->
+                    <div class="mt-12 pt-8 border-t border-gray-200">
+                        <button onclick="app.deleteAccountInit()" class="w-full py-4 text-red-600 font-bold bg-red-50 rounded-xl border border-red-100 flex items-center justify-center gap-2">
+                            <i class="ph-fill ph-trash"></i> Eliminar mi cuenta
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+        
+        <!-- Toast de Notificación -->
+        <div id="toast" class="absolute top-4 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-xl text-sm font-medium transition-all duration-300 opacity-0 -translate-y-10 pointer-events-none z-50">
+            Acción realizada
+        </div>
+
+        <!-- Modal Genérico -->
+        <div id="modal-backdrop" class="hidden absolute inset-0 bg-black/60 z-50 backdrop-blur-sm flex items-center justify-center p-6">
+            <div id="modal-body" class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-[fadeIn_0.2s_ease-out]">
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!--      ARCHIVO: www/js/db.js (Base de datos) -->
+    <!-- ========================================== -->
+    <script>
+        class LocalDB {
+            constructor() {
+                this.TABLE_USERS = 'db_users';
+                this.TABLE_SESSION = 'db_session';
+                if (!localStorage.getItem(this.TABLE_USERS)) {
+                    localStorage.setItem(this.TABLE_USERS, JSON.stringify([]));
+                }
+            }
+
+            // Simula conexión a base remota
+            async connect() { return true; }
+
+            insert(data) {
+                const users = JSON.parse(localStorage.getItem(this.TABLE_USERS));
+                if (users.some(u => u.email === data.email || u.usuario === data.usuario)) {
+                    throw new Error("El usuario o email ya existe");
+                }
+                users.push(data);
+                localStorage.setItem(this.TABLE_USERS, JSON.stringify(users));
+                return data;
+            }
+
+            find(email, password) {
+                const users = JSON.parse(localStorage.getItem(this.TABLE_USERS));
+                const user = users.find(u => u.email === email && u.password === password);
+                if (!user) throw new Error("Credenciales incorrectas");
+                return user;
+            }
+
+            update(emailKey, newData) {
+                let users = JSON.parse(localStorage.getItem(this.TABLE_USERS));
+                const index = users.findIndex(u => u.email === emailKey);
+                if (index === -1) throw new Error("Usuario no encontrado");
+                
+                // Actualizar campos
+                users[index] = { ...users[index], ...newData };
+                localStorage.setItem(this.TABLE_USERS, JSON.stringify(users));
+                return users[index];
+            }
+
+            remove(emailKey) {
+                let users = JSON.parse(localStorage.getItem(this.TABLE_USERS));
+                const newUsers = users.filter(u => u.email !== emailKey);
+                localStorage.setItem(this.TABLE_USERS, JSON.stringify(newUsers));
+            }
+        }
+        const db = new LocalDB();
+    </script>
+
+    <!-- ========================================== -->
+    <!--      ARCHIVO: www/js/app.js (Lógica)       -->
+    <!-- ========================================== -->
+    <script>
+        // --- UI & TOOLS ---
+        const ui = {
+            togglePass: (id, icon) => {
+                const input = document.getElementById(id);
+                const isPass = input.type === 'password';
+                input.type = isPass ? 'text' : 'password';
+                icon.classList.toggle('ph-eye');
+                icon.classList.toggle('ph-eye-slash');
+                icon.classList.toggle('text-indigo-600');
+            },
+            
+            previewImage: (input, imgId, iconId) => {
+                if (input.files && input.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = document.getElementById(imgId);
+                        img.src = e.target.result;
+                        img.classList.remove('hidden');
+                        if(iconId) document.getElementById(iconId).classList.add('hidden');
+                    };
+                    reader.readAsDataURL(input.files[0]);
+                }
+            },
+
+            toast: (msg) => {
+                const el = document.getElementById('toast');
+                el.innerText = msg;
+                el.classList.remove('opacity-0', '-translate-y-10');
+                setTimeout(() => el.classList.add('opacity-0', '-translate-y-10'), 3000);
+            },
+
+            modal: (html) => {
+                document.getElementById('modal-body').innerHTML = html;
+                document.getElementById('modal-backdrop').classList.remove('hidden');
+            },
+
+            closeModal: () => {
+                document.getElementById('modal-backdrop').classList.add('hidden');
+            }
+        };
+
+        // --- ROUTER (Simula navegación entre archivos) ---
+        const router = {
+            load: (pageName) => {
+                // Ocultar todas
+                document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
+                
+                // Mostrar destino
+                const target = document.getElementById(`page-${pageName}`);
+                if(target) target.classList.add('active');
+
+                // Lógica de Base (Header visible solo en páginas internas)
+                const header = document.getElementById('app-header');
+                if(pageName === 'login' || pageName === 'register') {
+                    header.classList.add('hidden');
+                } else {
+                    header.classList.remove('hidden');
+                }
+            }
+        };
+
+        // --- APP LOGIC ---
+        const app = {
+            user: null,
+
+            login: (e) => {
+                e.preventDefault();
+                try {
+                    const u = db.find(
+                        document.getElementById('log-email').value,
+                        document.getElementById('log-pass').value
+                    );
+                    app.startSession(u);
+                } catch(err) { ui.toast(err.message); }
+            },
+
+            register: (e) => {
+                e.preventDefault();
+                const p1 = document.getElementById('reg-pass1').value;
+                const p2 = document.getElementById('reg-pass2').value;
+                if(p1 !== p2) return ui.toast('Contraseñas no coinciden');
+
+                const data = {
+                    nombre: document.getElementById('reg-nombre').value,
+                    apellido1: document.getElementById('reg-apellido1').value,
+                    apellido2: document.getElementById('reg-apellido2').value,
+                    cedula: document.getElementById('reg-cedula').value,
+                    nacimiento: document.getElementById('reg-nacimiento').value,
+                    movil: document.getElementById('reg-movil').value,
+                    telefono: document.getElementById('reg-telefono').value,
+                    email: document.getElementById('reg-email').value,
+                    usuario: document.getElementById('reg-usuario').value,
+                    password: p1,
+                    // Usar imagen por defecto si no hay carga
+                    photo: document.getElementById('reg-preview').src || 'https://via.placeholder.com/150'
+                };
+
+                try {
+                    db.insert(data);
+                    ui.toast('Registro exitoso');
+                    document.querySelector('form[onsubmit="app.register(event)"]').reset();
+                    router.load('login');
+                } catch(err) { ui.toast(err.message); }
+            },
+
+            startSession: (user) => {
+                app.user = user;
+                localStorage.setItem('miApp_current', JSON.stringify(user));
+                
+                // Cargar datos en Home
+                document.getElementById('home-user-display').innerText = user.nombre;
+                
+                // Cargar datos en Perfil (TODOS LOS CAMPOS)
+                document.getElementById('edit-nombre').value = user.nombre;
+                document.getElementById('edit-apellido1').value = user.apellido1;
+                document.getElementById('edit-apellido2').value = user.apellido2;
+                document.getElementById('edit-cedula').value = user.cedula;
+                document.getElementById('edit-nacimiento').value = user.nacimiento;
+                document.getElementById('edit-movil').value = user.movil;
+                document.getElementById('edit-telefono').value = user.telefono;
+                document.getElementById('edit-email').value = user.email;
+                document.getElementById('edit-usuario').value = user.usuario;
+                document.getElementById('edit-preview').src = user.photo;
+                
+                router.load('home');
+            },
+
+            updateProfile: (e) => {
+                e.preventDefault();
+                const newPass = document.getElementById('edit-pass').value;
+                
+                const updates = {
+                    nombre: document.getElementById('edit-nombre').value,
+                    apellido1: document.getElementById('edit-apellido1').value,
+                    apellido2: document.getElementById('edit-apellido2').value,
+                    nacimiento: document.getElementById('edit-nacimiento').value,
+                    movil: document.getElementById('edit-movil').value,
+                    telefono: document.getElementById('edit-telefono').value,
+                    email: document.getElementById('edit-email').value,
+                    usuario: document.getElementById('edit-usuario').value,
+                    photo: document.getElementById('edit-preview').src
+                };
+                if(newPass) updates.password = newPass;
+
+                try {
+                    const updated = db.update(app.user.email, updates);
+                    app.startSession(updated); // Recargar sesión
+                    ui.toast('Perfil guardado');
+                } catch(err) { ui.toast('Error guardando'); }
+            },
+
+            // --- BORRADO EN 3 PASOS ---
+            deleteAccountInit: () => {
+                ui.modal(`
+                    <div class="text-center">
+                        <i class="ph-fill ph-warning text-4xl text-yellow-500 mb-2"></i>
+                        <h3 class="font-bold text-lg">¿Estás seguro?</h3>
+                        <p class="text-sm text-gray-500 mb-4">Paso 1/3: Vas a eliminar tu cuenta.</p>
+                        <div class="flex gap-2">
+                            <button onclick="ui.closeModal()" class="w-full py-2 rounded-lg bg-gray-100">Cancelar</button>
+                            <button onclick="app.deleteAccountStep2()" class="w-full py-2 rounded-lg bg-yellow-500 text-white font-bold">Continuar</button>
+                        </div>
+                    </div>
+                `);
+            },
+            deleteAccountStep2: () => {
+                ui.modal(`
+                    <div class="text-center">
+                        <i class="ph-fill ph-warning-octagon text-4xl text-orange-500 mb-2"></i>
+                        <h3 class="font-bold text-lg">Confirmación</h3>
+                        <p class="text-sm text-gray-500 mb-4">Paso 2/3: Perderás todos tus datos.</p>
+                        <div class="flex gap-2">
+                            <button onclick="ui.closeModal()" class="w-full py-2 rounded-lg bg-gray-100">Cancelar</button>
+                            <button onclick="app.deleteAccountStep3()" class="w-full py-2 rounded-lg bg-orange-500 text-white font-bold">Entiendo</button>
+                        </div>
+                    </div>
+                `);
+            },
+            deleteAccountStep3: () => {
+                ui.modal(`
+                    <div class="text-center">
+                        <i class="ph-fill ph-skull text-4xl text-red-600 mb-2"></i>
+                        <h3 class="font-bold text-lg text-red-600">Última Oportunidad</h3>
+                        <p class="text-sm text-gray-500 mb-4">Paso 3/3: Esta acción es irreversible.</p>
+                        <div class="flex gap-2">
+                            <button onclick="ui.closeModal()" class="w-full py-2 rounded-lg bg-gray-100">Cancelar</button>
+                            <button onclick="app.finalDelete()" class="w-full py-2 rounded-lg bg-red-600 text-white font-bold">ELIMINAR YA</button>
+                        </div>
+                    </div>
+                `);
+            },
+            finalDelete: () => {
+                db.remove(app.user.email);
+                app.logout();
+                ui.closeModal();
+                ui.toast('Cuenta eliminada para siempre');
+            },
+
+            logout: () => {
+                app.user = null;
+                localStorage.removeItem('miApp_current');
+                document.querySelector('form[onsubmit="app.login(event)"]').reset();
+                router.load('login');
+            }
+        };
+
+        // PWA Install
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('pwa-btn');
+            btn.classList.remove('hidden');
+            btn.onclick = () => e.prompt();
+        });
+
+        // Init
+        window.onload = () => {
+            const saved = localStorage.getItem('miApp_current');
+            if(saved) app.startSession(JSON.parse(saved));
+            else router.load('login');
+        };
+    </script>
+</body>
+</html>

@@ -15,17 +15,22 @@
     <!-- Grid de Acciones -->
     <h3 class="font-bold text-slate-800 mb-4">Acciones Rápidas</h3>
     <div class="grid grid-cols-2 gap-4">
+        
+        <!-- Botón Perfil -->
         <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center gap-3 active:scale-95 transition cursor-pointer" onclick="router.navigate('perfil')">
             <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-2xl">
                 <i class="ph-fill ph-files"></i>
             </div>
             <span class="font-semibold text-sm text-slate-600">Mis Datos</span>
         </div>
-        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center gap-3 active:scale-95 transition cursor-pointer">
-            <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center text-2xl">
-                <i class="ph-fill ph-bell"></i>
+
+        <!-- NUEVO: Botón Dashboard -->
+        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center gap-3 active:scale-95 transition cursor-pointer" onclick="router.navigate('dashboard')">
+            <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center text-2xl">
+                <i class="ph-fill ph-sliders-horizontal"></i>
             </div>
-            <span class="font-semibold text-sm text-slate-600">Alertas</span>
+            <span class="font-semibold text-sm text-slate-600">Configuración</span>
         </div>
+
     </div>
 </div>

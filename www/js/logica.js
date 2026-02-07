@@ -66,8 +66,7 @@ const app = {
         ui.toast(app.showRefresh ? "Botón Activado" : "Botón Oculto");
     },
 
-    // --- VISIBILIDAD BIOMETRÍA (Modificado para mostrar siempre en Demo Web) ---
-    // Esta función anula la restricción estricta de nativo para que puedas ver el botón
+    // --- VISIBILIDAD BIOMETRÍA ---
     updateBiometricUI: () => {
         const btn = document.getElementById('btn-biometric');
         if (!btn) return;
@@ -168,7 +167,7 @@ const app = {
         router.navigate('home');
     },
 
-    // --- CARGA DE DATOS ---
+    // --- CARGA DE DATOS HOME ---
     loadHomeData: () => {
         if(!app.user) return;
         setTimeout(() => {
@@ -198,35 +197,51 @@ const app = {
         }, 100);
     },
 
-    // --- PERFIL Y BIOMETRÍA (Modificado para DEMO Web) ---
-    initProfileView: async () => {
+    // --- PERFIL Y BIOMETRÍA ---
+    loadProfileData: () => {
         if(!app.user) return;
-        
-        // Rellenar datos... (sin cambios)
-        const setVal = (id, val) => { const el = document.getElementById(id); if(el) el.value = val || ''; };
-        setVal('edit-usuario', app.user.usuario);
-        setVal('edit-email', app.user.email);
-        if(app.user.photo && !app.user.photo.includes('placeholder')) {
-            document.getElementById('edit-img-preview').src = app.user.photo;
-        }
 
-        // Mostrar sección de biometría SIEMPRE (para que puedas configurarlo)
+        // 1. Mostrar configuración biometría si aplica
         const bioContainer = document.getElementById('bio-settings-container');
         const bioToggle = document.getElementById('bio-toggle');
-
         if (bioContainer) {
-            bioContainer.classList.remove('hidden'); // Forzar visualización
+            bioContainer.classList.remove('hidden');
             const isEnabled = localStorage.getItem('miApp_bio_enabled') === 'true';
             if(bioToggle) bioToggle.checked = isEnabled;
         }
+
+        // 2. Rellenar formulario con un pequeño delay para asegurar renderizado
+        setTimeout(() => {
+            const setVal = (id, val) => { 
+                const el = document.getElementById(id); 
+                if(el) el.value = (val !== undefined && val !== null) ? val : ''; 
+            };
+
+            setVal('edit-usuario', app.user.usuario);
+            setVal('edit-email', app.user.email);
+            
+            // Datos personales completos
+            setVal('edit-nombre', app.user.nombre);
+            setVal('edit-apellido1', app.user.apellido1);
+            setVal('edit-apellido2', app.user.apellido2);
+            setVal('edit-cedula', app.user.cedula);
+            setVal('edit-nacimiento', app.user.nacimiento);
+            setVal('edit-movil', app.user.movil);
+            setVal('edit-telefono', app.user.telefono);
+
+            // Foto de perfil
+            if(app.user.photo && !app.user.photo.includes('placeholder')) {
+                const imgPreview = document.getElementById('edit-img-preview');
+                if(imgPreview) imgPreview.src = app.user.photo;
+            }
+        }, 100);
     },
     
-    // Sobrescribimos toggleBiometry para que funcione en Web (Simulación)
     toggleBiometry: async (checkbox) => {
         const enable = checkbox.checked;
         if(enable) {
-             // Simulación Web: Guardar sin verificar hardware real
              localStorage.setItem('miApp_bio_enabled', 'true');
+             // Guardamos credenciales actuales para uso futuro
              if(app.user) {
                  localStorage.setItem('miApp_remember', JSON.stringify({
                      email: app.user.email,
@@ -240,39 +255,24 @@ const app = {
         }
     },
 
-    loadProfileData: () => {
-        // Redirigimos a initProfileView que ya contiene la lógica
-        app.initProfileView();
-        
-        // Carga resto de datos
-        if(!app.user) return;
-        setTimeout(() => {
-            const setVal = (id, val) => { const el = document.getElementById(id); if(el) el.value = val || ''; };
-            setVal('edit-nombre', app.user.nombre);
-            setVal('edit-apellido1', app.user.apellido1);
-            setVal('edit-apellido2', app.user.apellido2);
-            setVal('edit-cedula', app.user.cedula);
-            setVal('edit-nacimiento', app.user.nacimiento);
-            setVal('edit-movil', app.user.movil);
-            setVal('edit-telefono', app.user.telefono);
-        }, 50);
-    },
-
     updateProfile: async (e) => {
         e.preventDefault();
         const passOld = document.getElementById('edit-pass-old').value;
         const passNew = document.getElementById('edit-pass-new').value;
         const passConfirm = document.getElementById('edit-pass-confirm').value;
+        
         const movil = document.getElementById('edit-movil').value;
         const telefono = document.getElementById('edit-telefono').value;
 
         if(movil && !validators.isValidPhone(movil)) return ui.toast('Móvil incorrecto');
         if(telefono && !validators.isValidPhone(telefono)) return ui.toast('Teléfono incorrecto');
 
+        // Objeto de actualización base
         const updates = {
             nombre: document.getElementById('edit-nombre')?.value,
             apellido1: document.getElementById('edit-apellido1')?.value,
             apellido2: document.getElementById('edit-apellido2')?.value,
+            cedula: document.getElementById('edit-cedula')?.value,
             nacimiento: document.getElementById('edit-nacimiento')?.value,
             movil: movil,
             telefono: telefono,
@@ -281,10 +281,17 @@ const app = {
             photo: document.getElementById('edit-preview')?.src || document.getElementById('edit-img-preview')?.src
         };
 
-        if (passOld || passNew || passConfirm) {
-            if (!passOld || !passNew || !passConfirm) return ui.toast('Faltan campos de contraseña');
+        // --- VALIDACIÓN INTELIGENTE DE CONTRASEÑA ---
+        // Solo intentamos cambiar contraseña si el usuario escribió algo en los campos NUEVOS.
+        // Ignoramos passOld si passNew está vacío (evita bloqueo por autocompletado).
+        if (passNew || passConfirm) {
+            if (!passOld) return ui.toast('Ingresa tu contraseña actual para confirmar');
+            if (!passNew) return ui.toast('Ingresa la nueva contraseña');
+            if (!passConfirm) return ui.toast('Confirma la nueva contraseña');
+            
             if (passOld !== app.user.password) return ui.toast('Contraseña actual incorrecta');
-            if (passNew !== passConfirm) return ui.toast('Nuevas no coinciden');
+            if (passNew !== passConfirm) return ui.toast('Las nuevas contraseñas no coinciden');
+            
             updates.password = passNew;
         }
 
@@ -293,21 +300,24 @@ const app = {
             app.user = updated;
             localStorage.setItem('miApp_current', JSON.stringify(updated));
             
-            // Si cambió la contraseña, actualizar credenciales biométricas si estaban activas
-            if (passNew && localStorage.getItem('miApp_bio_enabled') === 'true') {
+            // Si hubo cambio de contraseña, actualizar credenciales biométricas/remember
+            if (updates.password && localStorage.getItem('miApp_bio_enabled') === 'true') {
                 localStorage.setItem('miApp_remember', JSON.stringify({
                     email: app.user.email, 
-                    pass: app.user.password // Nota: usamos 'pass' para ser consistentes con login
+                    pass: app.user.password 
                 }));
             }
 
-            ui.toast('Perfil actualizado');
+            ui.toast('Perfil actualizado correctamente');
+            
+            // Limpiar campos de contraseña
             document.getElementById('edit-pass-old').value = '';
             document.getElementById('edit-pass-new').value = '';
             document.getElementById('edit-pass-confirm').value = '';
+            
         } catch(err) { 
             console.error(err);
-            ui.toast('Error al actualizar'); 
+            ui.toast('Error al actualizar perfil'); 
         }
     },
 
@@ -342,7 +352,6 @@ const app = {
     // --- LOGIN BIOMETRICO (Bridge) ---
     loginBiometry: () => {
         if(app.loginBiometryLogic) app.loginBiometryLogic();
-        // Fallback al definido en biometric.js mezclado en app
         else if(biometricLogic) biometricLogic.loginBiometry();
     },
     checkBiometryAvailability: async () => {
@@ -355,22 +364,18 @@ const router = {
         const outlet = document.getElementById('router-outlet');
         const header = document.getElementById('main-header');
         try {
-            // FIX: Ruta corregida, eliminamos 'vistas/' ya que los archivos están en la raíz
-            console.log(`Navegando a: ${viewName}.html`); // Debug para verificar ejecución
-            
-            const response = await fetch(`${viewName}.html`);
+            // FIX: Ruta plana y Cache Busting ?v=3 para evitar "Código Zombie"
+            const response = await fetch(`${viewName}.html?v=3`);
             if (!response.ok) throw new Error("Vista no encontrada");
             const html = await response.text();
             outlet.innerHTML = `<div class="fade-in h-full">${html}</div>`;
             
-            // Actualizar botón de refresh en cada navegación
             ui.updateRefreshButton(app.showRefresh);
 
             if (viewName === 'login' || viewName === 'register') {
                 header.classList.add('hidden');
                 if(viewName === 'login') {
                     app.checkRemembered();
-                    // Intentamos actualizar la UI biométrica (Usando la lógica relajada de app.js)
                     if (app.updateBiometricUI) app.updateBiometricUI();
                 }
             } else {
